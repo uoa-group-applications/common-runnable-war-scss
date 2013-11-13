@@ -1,0 +1,33 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>nz.ac.auckland</groupId>
+    <artifactId>uoa-java-parent</artifactId>
+    <version>2.6</version>
+  </parent>
+
+  <groupId>nz.ac.auckland.common</groupId>
+  <artifactId>runnable-war-scss</artifactId>
+  <version>1.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  <name>runnable-war-scss</name>
+
+  <description>
+    This lets us enable dev time scss checking. See README.adoc.
+  </description>
+
+  <dependencies>
+    <dependency>
+      <groupId>nz.ac.auckland.common</groupId>
+      <artifactId>runnable-war</artifactId>
+      <version>[5,)</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.bluetrainsoftware.bathe</groupId>
+      <artifactId>bathe-booter</artifactId>
+      <version>[1,2)</version>
+    </dependency>
+  </dependencies>
+</project>

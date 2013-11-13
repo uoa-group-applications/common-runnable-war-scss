@@ -1,0 +1,39 @@
+= SCSS Checker for Runnable War
+Richard Vowles
+:toc:
+
+== Introduction
+This artifact should always be included as a test artifact only.
+
+It is intended as a sanity checker to ensure that if you have scss directories in dependencies that are linked through your IDE, that you have generated the CSS and don't get weird failures.
+
+== How it works
+The checker uses the efficient classpath scanner and registers a listener. When the scan triggers it checks the urls as they come in to see if they
+are file urls and if so, checks if they end in */target/classes*. These occur when you are running your own project from the Maven command line or you
+are running inside an IDE.
+
+The code backtracks up and determines if they are projects contain an scss directory in *src/main/resources/META-INF/resources/scss* (the standard _Servlet 3_
+location of resources being *META-INF/resources*), and if so, checks for a corresponding *target/classes/META-INF/resources/css* directory. If it detects it
+is missing it assumes you have forgotten to run *sass:watch* or *process-resources* and fails the start of the runnable war.
+
+== Configuring
+Nothing is required from the end user.
+
+== Disabling
+It can be disabled with the standard Bathe Initializer disabling mechanism:
+
+[source]
+bathe.disable.scss-devmode=true
+----
+
+== Including dependency
+
+Typically this will be included as a composite POM in a set of common test dependencies in your Servlet 3 Jar artifacts, but the dependency is as follows:
+
+[source,xml]
+<dependency>
+  <groupId>nz.ac.auckland.common</groupId>
+  <artifactId>runnable-war-scss</artifactId>
+  <version>[1,2)</version>
+</dependency>
+----
