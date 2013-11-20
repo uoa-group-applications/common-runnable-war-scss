@@ -37,7 +37,7 @@ public class ScssConfiguration extends AbstractConfiguration {
 
 	@Override
 	public void preConfigure(final WebAppContext context) throws Exception {
-		if ("true".equals(System.getProperty(WebAppRunner.DEVMODE))) {
+		if (System.getProperty(WebAppRunner.WEBAPP_WAR_FILENAME) != null) {
 			log.info("Registering scanner for uncompiled SCSS directories");
 
 			ClasspathScanner.getInstance().registerResourceScanner(new ResourceScanListener() {
@@ -51,28 +51,25 @@ public class ScssConfiguration extends AbstractConfiguration {
 				}
 
 				@Override
-				public boolean isInteresting(URL url) {
-					String resource = url.toString();
-
-					if (resource.startsWith("file:")) {
-						File file = new File(resource.substring("file:".length()));
-						if (file.isDirectory() && resource.endsWith("/target/classes")) {
-							File pomDir = file.getParentFile().getParentFile();
+				public InterestAction isInteresting(InterestingResource interestingResource) {
+					if (interestingResource.directory != null )  {
+						if (interestingResource.directory.getPath().endsWith("/target/classes")) {
+							File pomDir = interestingResource.directory.getParentFile().getParentFile();
 							File scssDir = new File(pomDir, "src/main/resources/META-INF/resources/scss");
 							if (scssDir.exists() && scssDir.isDirectory()) {
-								scssFilesChecks.add(new ScssCheck(scssDir, file.getParentFile().getParentFile()));
+								scssFilesChecks.add(new ScssCheck(scssDir, interestingResource.directory.getParentFile().getParentFile()));
 							}
 						}
 					}
 
-					return false;
+					return InterestAction.ONCE;
 				}
 
 				@Override
-				public boolean removeListenerOnScanCompletion() {
-					processScssChecks(context);
-
-					return true;
+				public void scanAction(ScanAction action) {
+					if (action == ScanAction.COMPLETE) {
+						processScssChecks(context);
+					}
 				}
 			});
 		}
