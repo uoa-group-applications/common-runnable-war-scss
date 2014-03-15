@@ -2,6 +2,7 @@ package nz.ac.auckland.war;
 
 import com.bluetrainsoftware.classpathscanner.ClasspathScanner;
 import com.bluetrainsoftware.classpathscanner.ResourceScanListener;
+import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.AbstractConfiguration;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,11 @@ import java.util.List;
 public class ScssConfiguration extends AbstractConfiguration {
 	private static final org.slf4j.Logger log = LoggerFactory.getLogger(ScssConfiguration.class);
 
+	// hopefully it will work on Windows now
+	private static final String TARGET_CLASSES = "/target/classes".replace('/', File.separatorChar);
+	private static final String SRC_MAIN_RESOURCES_META_INF_RESOURCES_SCSS = "src/main/resources/META-INF/resources/scss".replace('/', File.separatorChar);
+	private static final String TARGET_CLASSES_META_INF_RESOURCES_CSS = "target/classes/META-INF/resources/css".replace('/', File.separatorChar);
+
 	private List<ScssCheck> scssFilesChecks = new ArrayList<>();
 
 	class ScssCheck {
@@ -37,7 +43,7 @@ public class ScssConfiguration extends AbstractConfiguration {
 
 	@Override
 	public void preConfigure(final WebAppContext context) throws Exception {
-		if (System.getProperty(WebAppRunner.WEBAPP_WAR_FILENAME) != null) {
+		if (System.getProperty(WebAppRunner.WEBAPP_WAR_FILENAME) == null) {
 			log.info("Registering scanner for uncompiled SCSS directories");
 
 			ClasspathScanner.getInstance().registerResourceScanner(new ResourceScanListener() {
@@ -53,9 +59,9 @@ public class ScssConfiguration extends AbstractConfiguration {
 				@Override
 				public InterestAction isInteresting(InterestingResource interestingResource) {
 					if (interestingResource.directory != null )  {
-						if (interestingResource.directory.getPath().endsWith("/target/classes")) {
+						if (interestingResource.directory.getPath().endsWith(TARGET_CLASSES)) {
 							File pomDir = interestingResource.directory.getParentFile().getParentFile();
-							File scssDir = new File(pomDir, "src/main/resources/META-INF/resources/scss");
+							File scssDir = new File(pomDir, SRC_MAIN_RESOURCES_META_INF_RESOURCES_SCSS);
 							if (scssDir.exists() && scssDir.isDirectory()) {
 								scssFilesChecks.add(new ScssCheck(scssDir, interestingResource.directory.getParentFile().getParentFile()));
 							}
@@ -82,14 +88,17 @@ public class ScssConfiguration extends AbstractConfiguration {
 	 * @throws IOException
 	 */
 	private void processScssChecks(final WebAppContext context) {
-		for (ScssCheck check : scssFilesChecks) {
-			if (new File(check.scssDir, "scss").exists()) {
-				File cssDir = new File(check.pomDir, "target/classes/META-INF/resources/css");
+		List<Resource> theResources = (List<Resource>) context.getAttribute(ScanConfiguration.RESOURCE_URLS);
 
-				if (!cssDir.exists()) {
-					throw new RuntimeException("SCSS/SASS directory found at " + check.scssDir.getAbsolutePath() + " but no matching CSS directory found at " +
-						cssDir.getAbsolutePath() + " - please ensure you are running \"mvn sass:watch\" or \"mvn process-resources\" for each open web fragment project.");
-				}
+		for (ScssCheck check : scssFilesChecks) {
+			File cssDir = new File(check.pomDir, TARGET_CLASSES_META_INF_RESOURCES_CSS);
+
+			if (!cssDir.exists()) {
+				throw new RuntimeException("SCSS/SASS directory found at " + check.scssDir.getAbsolutePath() + " but no matching CSS directory found at " +
+					cssDir.getAbsolutePath() + " - please ensure you are running \"mvn sass:watch\" or \"mvn process-resources\" for each open web fragment project.");
+			} else {
+				log.debug("webapp.scan: added scss directory resource {}", cssDir.getParentFile().getAbsolutePath());
+				theResources.add(new ScssResource(cssDir.getParentFile().toURI()));
 			}
 		}
 	}
