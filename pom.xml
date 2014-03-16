@@ -9,7 +9,7 @@
 
   <groupId>nz.ac.auckland.common</groupId>
   <artifactId>runnable-war-scss</artifactId>
-  <version>1.1</version>
+  <version>1.2-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>runnable-war-scss</name>
 
@@ -30,8 +30,4 @@
       <version>[1.2,2)</version>
     </dependency>
   </dependencies>
-
-  <scm>
-    <tag>runnable-war-scss-1.1</tag>
-  </scm>
 </project>
